@@ -1,10 +1,21 @@
 from flask import Flask, render_template, request
 import csv
 import json
-import requests
 import sys  # Import the sys module
 
 app = Flask(__name__)
+
+try:
+    import requests
+except ImportError:
+    print("The 'requests' library is not installed. Installing it...")
+    try:
+        import subprocess
+        subprocess.check_call(['pip', 'install', 'requests'])
+        import requests  # Try importing again
+    except Exception as e:
+        print("Failed to install 'requests' library:", e)
+        sys.exit(1)
 
 @app.route('/')
 def index():
