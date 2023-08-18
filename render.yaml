@@ -3,7 +3,8 @@
 services:
   - name: repayment-marking
     env: production
-    startCommand: python app.py  
+    startCommand: python app.py  --port 5000
+    healthCheckPath: /
     routes:
       - src: /
         dest: repayment-marking  # This should match the 'name' of your service
