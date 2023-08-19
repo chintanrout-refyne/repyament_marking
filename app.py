@@ -1,21 +1,9 @@
 from flask import Flask, render_template, request
 import csv
 import json
-import sys  # Import the sys module
+import requests
 
 app = Flask(__name__)
-
-try:
-    import requests
-except ImportError:
-    print("The 'requests' library is not installed. Installing it...")
-    try:
-        import subprocess
-        subprocess.check_call(['pip', 'install', 'requests'])
-        import requests  # Try importing again
-    except Exception as e:
-        print("Failed to install 'requests' library:", e)
-        sys.exit(1)
 
 @app.route('/')
 def index():
@@ -26,34 +14,46 @@ def upload():
     csv_file = request.files['csvFile']
     bearer_token = request.form['bearerToken']
 
-    # Set the endpoint URL
-    url = "https://api.beta.prod.refyne.co.in/refyne-admin/emi-repayment"
+    # Ensure the CSV file exists
+    if csv_file:
+        # Read the CSV file contents
+        csv_contents = csv_file.read().decode('utf-8')
+        
+        # API endpoint URL
+        url = "https://api.beta.uat.refyne.co.in/refyne-admin/emi-repayment"
+        
+        # Headers
+        headers = {
+            'accept': '*/*',
+            'Authorization': f'Bearer {bearer_token}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Process the CSV contents
+        csv_rows = csv.reader(csv_contents.splitlines())  # Use csv.reader instead of csv.DictReader
+        header = next(csv_rows)  # Read the header row
+        
+        # Assuming the CSV has 'UserID' and 'emiAmount' columns
+        user_id_index = header.index('UserID')
+        emi_amount_index = header.index('emiAmount')
 
-    # Set the headers
-    headers = {
-        'accept': '*/*',
-        'Authorization': f'Bearer {bearer_token}',
-        'Content-Type': 'application/json'
-    }
-
-    with open(csv_file, 'r') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
+        for row in csv_rows:
             payload = {
-                "userId": row['UserID'],
-                "emiAmount": int(row['emiAmount']),
+                "userId": row[user_id_index],
+                "emiAmount": float(row[emi_amount_index]),
                 "paidAt": "2023-08-16T20:55:24.953Z"
             }
             
             response = requests.post(url, headers=headers, data=json.dumps(payload))
             
             if response.status_code == 200:
-                print(f"Successfully sent EMI repayment for UserID: {row['UserID']}")
+                print(f"Successfully sent EMI repayment for UserID: {row[user_id_index]}")
             else:
-                print(f"Failed to send EMI repayment for UserID: {row['UserID']}, Status Code: {response.status_code}")
-                sys.exit(1)  # Exit the script with a non-zero status code
+                print(f"Failed to send EMI repayment for UserID: {row[user_id_index]}, Status Code: {response.status_code}")
 
-    return "CSV data uploaded and processed."
+        return "CSV data uploaded and processed."
+    else:
+        return "No CSV file uploaded."
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
