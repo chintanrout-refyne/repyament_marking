@@ -18,9 +18,9 @@ def upload():
     if csv_file:
         # Read the CSV file contents
         csv_contents = csv_file.read().decode('utf-8')
-        
+        current_utc_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         # API endpoint URL
-        url = "https://api.beta.uat.refyne.co.in/refyne-admin/emi-repayment"
+        url = "https://api.beta.prod.refyne.co.in/refyne-admin/emi-repayment"
         
         # Headers
         headers = {
@@ -41,7 +41,7 @@ def upload():
             payload = {
                 "userId": row[user_id_index],
                 "emiAmount": float(row[emi_amount_index]),
-                "paidAt": "2023-08-16T20:55:24.953Z"
+                "paidAt": current_utc_time
             }
             
             response = requests.post(url, headers=headers, data=json.dumps(payload))
