@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from datetime import date, datetime
 import csv
 import json
 import requests
@@ -46,7 +47,7 @@ def upload():
             
             response = requests.post(url, headers=headers, data=json.dumps(payload))
             
-            if response.status_code == 200:
+            if response.status_code == 201:
                 print(f"Successfully sent EMI repayment for UserID: {row[user_id_index]}")
             else:
                 print(f"Failed to send EMI repayment for UserID: {row[user_id_index]}, Status Code: {response.status_code}")
