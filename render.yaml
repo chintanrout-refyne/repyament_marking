@@ -3,7 +3,7 @@
 services:
   - name: repayment-marking
     env: production
-    startCommand: python app.py  --port 5000
+    startCommand: gunicorn app:app  --port 5000
     healthCheckPath: /
     routes:
       - src: /
